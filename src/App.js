@@ -60,13 +60,13 @@ class App extends Component {
                 return <div className={"headerColumn"}>{label}</div>;
               })}
             </div>
-            {_.map(userList, (user, index) => {
+            {_.map(userList, (user, userIndex) => {
               return (
                 <div className="row">
-                  {_.map(FIELDCOLUMN, ({ label, fieldKey }, index) => {
+                  {_.map(FIELDCOLUMN, ({ label, fieldKey }, fieldIndex) => {
                     return (
                       <div className={"headerColumn"}>
-                        {fieldKey != "delete" ? (
+                        {fieldKey !== "delete" ? (
                           <input
                             type="text"
                             className={"inputField"}
@@ -74,7 +74,7 @@ class App extends Component {
                             onChange={e =>
                               this.onInputFieldChange({
                                 value: e.target.value,
-                                index,
+                                index: userIndex,
                                 fieldKey
                               })
                             }
@@ -82,7 +82,7 @@ class App extends Component {
                         ) : (
                           <div
                             className={"delete"}
-                            onClick={() => this.onClickDelete({ index })}
+                            onClick={() => this.onClickDelete({ userIndex })}
                           >
                             {"Delete"}
                           </div>
