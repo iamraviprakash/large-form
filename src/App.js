@@ -1,8 +1,9 @@
 import React, { Component } from "react";
 import _ from "lodash";
 import "./App.css";
+import RowComponent from "./RowComponent";
 
-const elemnets = 1000;
+const elements = 1000;
 
 const FIELDCOLUMN = [
   { label: "Name", fieldKey: "name" },
@@ -20,16 +21,16 @@ class App extends Component {
     super(props);
 
     this.state = {
-      userList: Array.apply(null, Array(elemnets)).map(() => {
+      userList: Array.apply(null, Array(elements)).map(() => {
         return {};
-      })
+      }),
     };
   }
 
   onInputFieldChange = ({ index, value, fieldKey }) => {
-    const userList = this.state.userList;
-    userList[index][fieldKey] = value;
-    this.setState({});
+    const newUserList = JSON.parse(JSON.stringify(this.state.userList));
+    newUserList[index][fieldKey] = value;
+    this.setState({ userList: newUserList }); 
   };
 
   addUser = () => {
@@ -56,41 +57,20 @@ class App extends Component {
         <div className="scrollContainer">
           <div className="listContainer">
             <div className={"row headerRow"}>
-              {_.map(FIELDCOLUMN, ({ label }) => {
-                return <div className={"headerColumn"}>{label}</div>;
+              {_.map(FIELDCOLUMN, ({ label }, index) => {
+                return <div key={index} className={"headerColumn"}>{label}</div>;
               })}
             </div>
-            {_.map(userList, (user, userIndex) => {
+            {_.map(userList, (user, index) => {
               return (
-                <div className="row">
-                  {_.map(FIELDCOLUMN, ({ label, fieldKey }, fieldIndex) => {
-                    return (
-                      <div className={"headerColumn"}>
-                        {fieldKey !== "delete" ? (
-                          <input
-                            type="text"
-                            className={"inputField"}
-                            value={user[fieldKey] || ""}
-                            onChange={e =>
-                              this.onInputFieldChange({
-                                value: e.target.value,
-                                index: userIndex,
-                                fieldKey
-                              })
-                            }
-                          ></input>
-                        ) : (
-                          <div
-                            className={"delete"}
-                            onClick={() => this.onClickDelete({ userIndex })}
-                          >
-                            {"Delete"}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                <RowComponent 
+                  key = {index}
+                  onInputFieldChange = {this.onInputFieldChange}
+                  onClickDelete = {this.onClickDelete}
+                  index = {index}
+                  rowData = {userList[index]}
+                  FIELDCOLUMN = {FIELDCOLUMN}
+                />
               );
             })}
           </div>
