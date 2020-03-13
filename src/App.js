@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import _ from "lodash";
 import "./App.css";
 import RowComponent from "./RowComponent";
+import update from "immutability-helper";
+import nextId from "react-id-generator";
 
 const elements = 1000;
 
@@ -21,28 +23,43 @@ class App extends Component {
     super(props);
 
     this.state = {
-      userList: Array.apply(null, Array(elements)).map(() => {
-        return {};
+      userList: Array.apply(null, Array(elements)).map((currElement, index) => {
+        return {"id" : nextId()};
       }),
     };
   }
 
-  onInputFieldChange = ({ index, value, fieldKey }) => {
-    const newUserList = JSON.parse(JSON.stringify(this.state.userList));
-    newUserList[index][fieldKey] = value;
+  getIndex = _.memoize((id) => {
+    var index = 0;
+
+    for(var userIndex in this.state.userList) {
+        if (this.state.userList[userIndex].id === id) {
+          index = userIndex;
+          break;
+        }
+    }
+    // console.log("recalculated index for id: "+ id);
+    return index;
+  }, _.identity);
+
+  onInputFieldChange = ({ id, value, fieldKey }) => {
+    var index =  this.getIndex(id); 
+    const newUserList = update(this.state.userList, {$splice: [[index, 1, {...this.state.userList[index], [fieldKey]: value}]]});
     this.setState({ userList: newUserList }); 
   };
 
   addUser = () => {
-    const userList = this.state.userList;
-    userList.splice(0, 0, {});
-    this.setState({ userList });
-  };
+    const newIndex = nextId();
+    const newUserList = update(this.state.userList, {$splice: [[0, 0, {"id": newIndex}]]});
+    this.setState({ userList: newUserList});
+    this.getIndex.cache = new _.memoize.Cache();
+  }
 
-  onClickDelete = ({ index }) => {
-    const userList = this.state.userList;
-    userList.splice(index, 1);
-    this.setState({ userList });
+  onClickDelete = ({ id }) => {
+    var index =  this.getIndex(id); 
+    const newUserList = update(this.state.userList, {$splice: [[index, 1]]});
+    this.setState({ userList: newUserList });
+    this.getIndex.cache = new _.memoize.Cache()
   };
 
   render() {
@@ -58,17 +75,16 @@ class App extends Component {
           <div className="listContainer">
             <div className={"row headerRow"}>
               {_.map(FIELDCOLUMN, ({ label }, index) => {
-                return <div key={index} className={"headerColumn"}>{label}</div>;
+                return <div key={label} className={"headerColumn"}>{label}</div>;
               })}
             </div>
             {_.map(userList, (user, index) => {
               return (
                 <RowComponent 
-                  key = {index}
+                  key = {user.id}
                   onInputFieldChange = {this.onInputFieldChange}
                   onClickDelete = {this.onClickDelete}
-                  index = {index}
-                  rowData = {userList[index]}
+                  user = {user}
                   FIELDCOLUMN = {FIELDCOLUMN}
                 />
               );
